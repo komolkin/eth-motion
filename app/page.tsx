@@ -18,7 +18,7 @@ export default function Home() {
       }
     };
     fetchPrice();
-    const interval = setInterval(fetchPrice, 10000);
+    const interval = setInterval(fetchPrice, 2000);
     return () => clearInterval(interval);
   }, []);
 
