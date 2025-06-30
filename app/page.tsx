@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       {ethPrice !== null ? (
-        <div className="text-5xl font-bold text-center">
+        <div className="eth-price font-bold text-center">
           ETH: <NumberFlow value={ethPrice} format={{ style: "currency", currency: "USD", currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }} />
         </div>
       ) : (
