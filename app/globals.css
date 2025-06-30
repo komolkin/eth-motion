@@ -32,6 +32,6 @@ body {
 
 @media (min-width: 1280px) {
   .eth-price {
-    font-size: 15rem;
+    font-size: 10rem;
   }
 }
