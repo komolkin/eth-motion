@@ -41,7 +41,7 @@ export default function Home() {
               >
                 <NumberFlow value={ethChange / 100} format={{ signDisplay: "always", style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 }} />
                 {ethPrice !== null && (
-                  <span className="ml-2 eth-change-usd">
+                  <span className="ml-2 eth-change">
                     (
                     <NumberFlow
                       value={ethPrice * (ethChange / 100)}
