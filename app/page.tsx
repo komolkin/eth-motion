@@ -27,29 +27,43 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <label className="mb-6 flex items-center gap-2 text-lg cursor-pointer select-none">
-        <input
-          type="checkbox"
-          checked={showDecimals}
-          onChange={() => setShowDecimals((v) => !v)}
-          className="accent-blue-500 w-5 h-5"
-        />
-        Show Decimals
-      </label>
-      {ethPrice !== null ? (
-        <div className="eth-price font-bold text-center">
-          <NumberFlow value={ethPrice} format={{ style: "currency", currency: "USD", currencyDisplay: "narrowSymbol", maximumFractionDigits: showDecimals ? 2 : 0, minimumFractionDigits: showDecimals ? 2 : 0 }} />
-          {ethChange !== null && (
-            <div
-              className={`text-4xl mt-4 font-mono ${ethChange >= 0 ? "text-green-500" : "text-red-500"}`}
-            >
-              <NumberFlow value={ethChange / 100} format={{ signDisplay: "always", style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 }} />
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="text-2xl">Loading...</div>
-      )}
+      <div
+        className="eth-price font-bold text-center cursor-pointer select-none"
+        title="Click to toggle decimals"
+        onClick={() => setShowDecimals((v) => !v)}
+      >
+        {ethPrice !== null ? (
+          <div className="eth-price font-bold text-center">
+            <NumberFlow value={ethPrice} format={{ style: "currency", currency: "USD", currencyDisplay: "narrowSymbol", maximumFractionDigits: showDecimals ? 2 : 0, minimumFractionDigits: showDecimals ? 2 : 0 }} />
+            {ethChange !== null && (
+              <div
+                className={`text-4xl mt-4 font-mono ${ethChange >= 0 ? "text-green-500" : "text-red-500"}`}
+              >
+                <NumberFlow value={ethChange / 100} format={{ signDisplay: "always", style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 }} />
+                {ethPrice !== null && (
+                  <span className="ml-2 text-3xl">
+                    (
+                    <NumberFlow
+                      value={ethPrice * (ethChange / 100)}
+                      format={{
+                        signDisplay: "always",
+                        style: "currency",
+                        currency: "USD",
+                        currencyDisplay: "narrowSymbol",
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }}
+                    />
+                    )
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-2xl">Loading...</div>
+        )}
+      </div>
     </div>
   );
 }
