@@ -29,8 +29,43 @@ body {
   font-size: 3rem;
 }
 
+.eth-change {
+  font-size: 1.25rem; /* ~text-xl */
+}
+.eth-change-usd {
+  font-size: 1.125rem; /* ~text-lg */
+}
+
+@media (min-width: 640px) {
+  .eth-price {
+    font-size: 4rem;
+  }
+  .eth-change {
+    font-size: 1.5rem; /* ~text-2xl */
+  }
+  .eth-change-usd {
+    font-size: 1.25rem; /* ~text-xl */
+  }
+}
+@media (min-width: 768px) {
+  .eth-price {
+    font-size: 5rem;
+  }
+  .eth-change {
+    font-size: 1.875rem; /* ~text-3xl */
+  }
+  .eth-change-usd {
+    font-size: 1.5rem; /* ~text-2xl */
+  }
+}
 @media (min-width: 1280px) {
   .eth-price {
     font-size: 10rem;
+  }
+  .eth-change {
+    font-size: 2.25rem; /* ~text-4xl */
+  }
+  .eth-change-usd {
+    font-size: 1.875rem; /* ~text-3xl */
   }
 }
