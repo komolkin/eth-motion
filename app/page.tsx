@@ -37,7 +37,7 @@ export default function Home() {
             <NumberFlow value={ethPrice} format={{ style: "currency", currency: "USD", currencyDisplay: "narrowSymbol", maximumFractionDigits: showDecimals ? 2 : 0, minimumFractionDigits: showDecimals ? 2 : 0 }} />
             {ethChange !== null && (
               <div
-                className={`eth-change mt-4 font-mono ${ethChange >= 0 ? "text-green-500" : "text-red-500"}`}
+                className={`eth-change font-mono ${ethChange >= 0 ? "text-green-500" : "text-red-500"}`}
               >
                 <NumberFlow value={ethChange / 100} format={{ signDisplay: "always", style: "percent", minimumFractionDigits: 2, maximumFractionDigits: 2 }} />
                 {ethPrice !== null && (
