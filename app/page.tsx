@@ -5,12 +5,15 @@ import { Liveline } from "liveline";
 import type { LivelinePoint } from "liveline";
 
 const COINS = [
-  { id: "ethereum", label: "Ethereum", color: "#627eea" },
-  { id: "bitcoin", label: "Bitcoin", color: "#f7931a" },
-  { id: "solana", label: "Solana", color: "#9945ff" },
-  { id: "rarible", label: "Rarible", color: "#feda03" },
-  { id: "arbitrum", label: "Arbitrum", color: "#28a0f0" },
+  { id: "ethereum", label: "Ethereum", color: "#627eea", cbSymbol: "ETH-USD" },
+  { id: "bitcoin", label: "Bitcoin", color: "#f7931a", cbSymbol: "BTC-USD" },
+  { id: "solana", label: "Solana", color: "#9945ff", cbSymbol: "SOL-USD" },
+  { id: "rarible", label: "Rarible", color: "#feda03", cbSymbol: null },
+  { id: "arbitrum", label: "Arbitrum", color: "#28a0f0", cbSymbol: "ARB-USD" },
 ];
+
+const CB_WS_URL = "wss://ws-feed.exchange.coinbase.com";
+const FLUSH_INTERVAL_MS = 300;
 
 export default function Home() {
   const [selectedCoin, setSelectedCoin] = useState(COINS[0].id);
@@ -21,44 +24,109 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const latestPrice = useRef<number>(0);
 
-  const coinColor = COINS.find((c) => c.id === selectedCoin)?.color ?? "#3b82f6";
+  const coin = COINS.find((c) => c.id === selectedCoin)!;
+  const coinColor = coin.color;
 
+  // --- Coinbase WebSocket for real-time price ticks ---
+  useEffect(() => {
+    const cbSymbol = coin.cbSymbol;
+    if (!cbSymbol) return;
+
+    let ws: WebSocket | null = null;
+    let flushTimer: ReturnType<typeof setInterval>;
+    let dirty = false;
+
+    const connect = () => {
+      ws = new WebSocket(CB_WS_URL);
+
+      ws.onopen = () => {
+        ws?.send(
+          JSON.stringify({
+            type: "subscribe",
+            product_ids: [cbSymbol],
+            channels: ["ticker"],
+          })
+        );
+      };
+
+      ws.onmessage = (evt) => {
+        const msg = JSON.parse(evt.data);
+        if (msg.type === "ticker" && msg.product_id === cbSymbol) {
+          const p = parseFloat(msg.price);
+          if (!Number.isFinite(p)) return;
+          latestPrice.current = p;
+          dirty = true;
+        }
+      };
+
+      ws.onclose = () => {
+        // reconnect after a short delay unless we're cleaning up
+        if (ws) setTimeout(connect, 2000);
+      };
+    };
+
+    connect();
+
+    flushTimer = setInterval(() => {
+      if (!dirty) return;
+      dirty = false;
+      const p = latestPrice.current;
+      setPrice(p);
+      setChartData((prev) => [
+        ...prev,
+        { time: Date.now() / 1000, value: p },
+      ]);
+      setLoading(false);
+    }, FLUSH_INTERVAL_MS);
+
+    return () => {
+      const socket = ws;
+      ws = null; // prevent reconnect
+      socket?.close();
+      clearInterval(flushTimer);
+    };
+  }, [coin]);
+
+  // --- CoinGecko poll for 24h change (+ fallback price for coins without WS) ---
+  const fetchChange = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${selectedCoin}&vs_currencies=usd&include_24hr_change=true`
+      );
+      const data = await res.json();
+      const usdChange: number | undefined = data[selectedCoin]?.usd_24h_change;
+      if (usdChange != null) setChange(usdChange);
+
+      if (!coin.cbSymbol) {
+        const usd: number | undefined = data[selectedCoin]?.usd;
+        if (usd != null) {
+          setPrice(usd);
+          latestPrice.current = usd;
+          setChartData((prev) => [
+            ...prev,
+            { time: Date.now() / 1000, value: usd },
+          ]);
+          setLoading(false);
+        }
+      }
+    } catch {
+      // keep previous data
+    }
+  }, [selectedCoin, coin.cbSymbol]);
+
+  useEffect(() => {
+    fetchChange();
+    const interval = setInterval(fetchChange, coin.cbSymbol ? 30_000 : 2000);
+    return () => clearInterval(interval);
+  }, [fetchChange, coin.cbSymbol]);
+
+  // Reset on coin switch
   useEffect(() => {
     setChartData([]);
     setPrice(null);
     setChange(null);
     setLoading(true);
   }, [selectedCoin]);
-
-  const handleFetch = useCallback(async () => {
-    try {
-      const res = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${selectedCoin}&vs_currencies=usd&include_24hr_change=true`
-      );
-      const data = await res.json();
-      const usd: number | undefined = data[selectedCoin]?.usd;
-      const usdChange: number | undefined = data[selectedCoin]?.usd_24h_change;
-
-      if (usd != null) {
-        setPrice(usd);
-        latestPrice.current = usd;
-        setChartData((prev) => [
-          ...prev,
-          { time: Date.now() / 1000, value: usd },
-        ]);
-        setLoading(false);
-      }
-      if (usdChange != null) setChange(usdChange);
-    } catch {
-      // network error — keep previous data
-    }
-  }, [selectedCoin]);
-
-  useEffect(() => {
-    handleFetch();
-    const interval = setInterval(handleFetch, 2000);
-    return () => clearInterval(interval);
-  }, [handleFetch]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 gap-6">
