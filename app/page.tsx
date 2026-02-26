@@ -294,7 +294,7 @@ export default function Home() {
             </div>
 
             <div
-              className="eth-price font-bold text-center text-white"
+              className="eth-price font-medium text-center text-white font-mono"
             >
               {wsError ? (
                 <div className="text-lg text-zinc-500">
