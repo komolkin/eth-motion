@@ -8,8 +8,6 @@ const COINS = [
   { id: "ethereum", label: "Ethereum", color: "#627eea", cbSymbol: "ETH-USD" },
   { id: "bitcoin", label: "Bitcoin", color: "#f7931a", cbSymbol: "BTC-USD" },
   { id: "solana", label: "Solana", color: "#9945ff", cbSymbol: "SOL-USD" },
-  { id: "rarible", label: "Rarible", color: "#feda03", cbSymbol: null },
-  { id: "arbitrum", label: "Arbitrum", color: "#28a0f0", cbSymbol: "ARB-USD" },
 ];
 
 const CB_WS_URL = "wss://ws-feed.exchange.coinbase.com";
@@ -87,7 +85,7 @@ export default function Home() {
     };
   }, [coin]);
 
-  // --- CoinGecko poll for 24h change (+ fallback price for coins without WS) ---
+  // --- CoinGecko poll for 24h change only ---
   const fetchChange = useCallback(async () => {
     try {
       const res = await fetch(
@@ -96,29 +94,16 @@ export default function Home() {
       const data = await res.json();
       const usdChange: number | undefined = data[selectedCoin]?.usd_24h_change;
       if (usdChange != null) setChange(usdChange);
-
-      if (!coin.cbSymbol) {
-        const usd: number | undefined = data[selectedCoin]?.usd;
-        if (usd != null) {
-          setPrice(usd);
-          latestPrice.current = usd;
-          setChartData((prev) => [
-            ...prev,
-            { time: Date.now() / 1000, value: usd },
-          ]);
-          setLoading(false);
-        }
-      }
     } catch {
       // keep previous data
     }
-  }, [selectedCoin, coin.cbSymbol]);
+  }, [selectedCoin]);
 
   useEffect(() => {
     fetchChange();
-    const interval = setInterval(fetchChange, coin.cbSymbol ? 30_000 : 2000);
+    const interval = setInterval(fetchChange, 30_000);
     return () => clearInterval(interval);
-  }, [fetchChange, coin.cbSymbol]);
+  }, [fetchChange]);
 
   // Reset on coin switch
   useEffect(() => {
