@@ -349,12 +349,13 @@ export default function Home() {
                   color={token.color}
                   theme="dark"
                   loading={loading}
-                  exaggerate
-                  grid
-                  badge
-                  pulse
-                  scrub
-                  momentum
+        exaggerate
+        degen
+        grid
+        badge
+        pulse
+        scrub
+        momentum
                   formatValue={formatPrice}
                   windows={[
                     { label: "30s", secs: 30 },
