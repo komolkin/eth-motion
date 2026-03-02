@@ -225,6 +225,12 @@ export default function Home() {
           if (!Number.isFinite(p)) return;
           latestPrice.current = p;
           dirty = true;
+
+          const open = parseFloat(msg.open_24h);
+          if (Number.isFinite(open) && open > 0) {
+            const pctChange = ((p - open) / open) * 100;
+            setChange(pctChange);
+          }
         }
       };
 
@@ -253,26 +259,6 @@ export default function Home() {
     };
   }, [token]);
 
-  useEffect(() => {
-    if (!token) return;
-
-    const fetchChange = async () => {
-      try {
-        const res = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${token.name.toLowerCase()}&vs_currencies=usd&include_24hr_change=true`
-        );
-        const data = await res.json();
-        const entry = data[token.name.toLowerCase()];
-        if (entry?.usd_24h_change != null) setChange(entry.usd_24h_change);
-      } catch {
-        // keep previous
-      }
-    };
-
-    fetchChange();
-    const interval = setInterval(fetchChange, 30_000);
-    return () => clearInterval(interval);
-  }, [token]);
 
   const decimals = price !== null ? getDecimalPlaces(price) : 2;
 
@@ -346,6 +332,7 @@ export default function Home() {
                           )
                         </span>
                       )}
+                      <span className="ml-1 text-zinc-500 text-[0.65em]">24h</span>
                     </div>
                   )}
                 </>
